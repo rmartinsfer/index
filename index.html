@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>Home</title>
+  <style type="text/css">
+    body {
+      background-image: url("https://t2.tudocdn.net/624701?w=1920&h=1440");
+      background-size: cover;
+      background-position: center;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      color: white;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6); /* ESCURECIMENTO */
+      z-index: 0;
+    }
+
+    canvas {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 2;
+    }
+
+    .navigation__list {
+      list-style: none;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 150px;
+      background-color: #222;
+      padding: 0;
+      margin: 0;
+      z-index: 1;
+    }
+
+    .navigation__item {
+      text-align: center;
+      color: white;
+      text-decoration: none;
+      font-size: 18px;
+      padding: 15px 25px;
+      border: 3px solid transparent;
+      border-radius: 15px;
+      outline: none;
+    }
+
+    .navigation__item:focus,
+    .navigation__item.hovered {
+      border-color: yellow;
+      background-color: #333;
+    }
+
+    #hotel_qrcode {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      width: 100px;
+      height: 100px;
+      z-index: 1;
+    }
+
+    #infoArea {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      text-align: left;
+      z-index: 1;
+    }
+
+    #saudacao {
+      padding-top: 100px;
+      margin-left: 100px;
+      font-size: 26px;
+    }
+
+    #myDate, #myClock {
+      margin-left: 100px;
+    }
+  </style>
+
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+  <script src="../js/app-start.js"></script>
+
+  <script type="text/javascript">
+    function init() {
+      carregarInfo();
+      atualizarDataHora();
+      document.getElementById("saudacao").innerHTML = saudacao();
+      var itens = document.querySelectorAll('.navigation__item');
+      var index = 0;
+      itens[index].focus();
+
+      document.addEventListener('keydown', function(e) {
+        if (e.keyCode === 37 || e.keyCode === 39) {
+          itens[index].classList.remove('hovered');
+          if (e.keyCode === 37) index = (index - 1 + itens.length) % itens.length;
+          if (e.keyCode === 39) index = (index + 1) % itens.length;
+          itens[index].focus();
+          itens[index].classList.add('hovered');
+        }
+      });
+    }
+
+    function carregarInfo() {
+      if (!localStorage.getItem("apto")) return;
+      $.ajax({
+        url: '/dash/api.php?room_details&apto=' + localStorage.getItem("apto") + '&hotel=' + localStorage.getItem("hotel"),
+        type: 'GET',
+        dataType: 'json',
+        success: function (response) {
+          document.getElementById("apto").innerHTML = localStorage.getItem("apto");
+          document.getElementById("nome").innerHTML = response.results[0].nome;
+          document.getElementById("hotel_logo").src = response.results[0].hotel_logo;
+          if (!response.results[0].hotel_qrcode) {
+            document.getElementById("hotel_qrcode").style.display = "none";
+          } else {
+            document.getElementById("hotel_qrcode").src = response.results[0].hotel_qrcode;
+          }
+        }
+      });
+    }
+
+    function atualizarDataHora() {
+      exibirData();
+      exibirHora();
+    }
+
+    function exibirHora() {
+      var date = new Date();
+      var h = date.getHours();
+      var m = date.getMinutes();
+      var s = date.getSeconds();
+      if (h < 10) h = "0" + h;
+      if (m < 10) m = "0" + m;
+      if (s < 10) s = "0" + s;
+      document.getElementById("myClock").innerHTML = h + ":" + m + ":" + s;
+      setTimeout(exibirHora, 1000);
+    }
+
+    function exibirData() {
+      var dias = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+      var meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+      var date = new Date();
+      var texto = dias[date.getDay()] + ", " + date.getDate() + " de " + meses[date.getMonth()];
+      document.getElementById("myDate").innerHTML = texto;
+    }
+
+    function saudacao() {
+      var h = new Date().getHours();
+      if (h < 12) return "Bom Dia!";
+      if (h < 18) return "Boa Tarde!";
+      return "Boa Noite!";
+    }
+  </script>
+</head>
+
+<body id="content" onload="init()">
+<div id="infoArea">
+  <h4>QUARTO <span id="apto"></span></h4>
+  <h1 id="saudacao"></h1>
+  <h2 id="nome"></h2>
+  <h4 id="myDate"></h4>
+  <h3 id="myClock"></h3>
+</div>
+
+<img src="" alt="QRCODE" id="hotel_qrcode">
+
+<ul class="navigation__list">
+  <li><a class="navigation__item" href="tv/ao-vivo.html" tabindex="1">TV Ao Vivo</a></li>
+  <li><a class="navigation__item" href="gallery.html" tabindex="2">Cardápio</a></li>
+  <li><a class="navigation__item" href="attractions.html" tabindex="3">Atrações</a></li>
+  <li><a class="navigation__item" href="warnings.html" tabindex="4">Avisos</a></li>
+  <li><a class="navigation__item" href="apps.html" tabindex="5">Aplicativos</a></li>
+</ul>
+</body>
+</html>
